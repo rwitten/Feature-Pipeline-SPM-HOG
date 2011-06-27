@@ -1,6 +1,6 @@
 # This Makefile is used under Linux
 
-MATLABDIR ?= /afs/cs/software/
+MATLABDIR ?= /afs/cs/package/matlab-r2010b/matlab/r2010b/
 CXX ?= g++
 #CXX = g++-3.3
 CC ?= gcc

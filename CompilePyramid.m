@@ -22,9 +22,7 @@ function [ pyramid_all ] = CompilePyramid(imageFileList,dataBaseDir,textonSuffix
 %  file is found in dataBaseDir. This is very useful if you just want to
 %  update some of the data or if you've added new images.
 
-fprintf('Building Spatial Pyramid\n\n');
-
-binsHigh = 2^(pyramidLevels-1);
+fprintf('Compiling Pyramid\n');
 
 pyramid_all = [];
 
@@ -36,9 +34,10 @@ for f = 1:size(imageFileList,1)
     [dirN base] = fileparts(imageFName);
     baseFName = fullfile(dirN, base);
     
-    outFName = fullfile(dataBaseDir, sprintf('%s_pyramid_%d_%d.mat', baseFName, dictionarySize, pyramidLevels));
+    outFName = fullfile(dataBaseDir, sprintf('%s_pyramid_%d_%d_%d_%d.mat', baseFName, dictionarySize, pyramidLevels, ...
+	params.max_pooling, params.sum_norm));
     if(size(dir(outFName),1)~=0 && params.can_skip && params.can_skip_compilepyramid)
-        fprintf('Skipping %s\n', imageFName);
+        fprintf('Skipping (compile pyramid) %s\n', imageFName);
         load(outFName, 'pyramid');
         pyramid_all = [pyramid_all; pyramid];
         continue;
@@ -52,51 +51,20 @@ for f = 1:size(imageFileList,1)
     wid = texton_ind.wid;
     hgt = texton_ind.hgt;
 
-    fprintf('Loaded %s: wid %d, hgt %d\n', ...
+    fprintf('Loaded (compile_pyramid) %s: wid %d, hgt %d\n', ...
              imageFName, wid, hgt);
 
-    %% compute histogram at the finest level
-    pyramid_cell = cell(pyramidLevels,1);
-    pyramid_cell{1} = zeros(binsHigh, binsHigh, dictionarySize);
+    pyramid=sparse(1,texton_ind.data,1,1,dictionarySize);
 
-    for i=1:binsHigh
-        for j=1:binsHigh
-
-            % find the coordinates of the current bin
-            x_lo = floor(wid/binsHigh * (i-1));
-            x_hi = floor(wid/binsHigh * i);
-            y_lo = floor(hgt/binsHigh * (j-1));
-            y_hi = floor(hgt/binsHigh * j);
-            
-            texton_patch = texton_ind.data( (texton_ind.x > x_lo) & (texton_ind.x <= x_hi) & ...
-                                            (texton_ind.y > y_lo) & (texton_ind.y <= y_hi));
-            
-            % make histogram of features in bin
-            pyramid_cell{1}(i,j,:) = hist(texton_patch, 1:dictionarySize)./length(texton_ind.data);
-        end
+    if params.max_pooling
+      pyramid = (pyramid > .1);
+    
+    if params.sum_norm
+      pyramid = pyramid / sum(sum(pyramid));
+    else
+      pyramid = pyramid/ norm(double(pyramid));
     end
-
-    %% compute histograms at the coarser levels
-    num_bins = binsHigh/2;
-    for l = 2:pyramidLevels
-        pyramid_cell{l} = zeros(num_bins, num_bins, dictionarySize);
-        for i=1:num_bins
-            for j=1:num_bins
-                pyramid_cell{l}(i,j,:) = ...
-                pyramid_cell{l-1}(2*i-1,2*j-1,:) + pyramid_cell{l-1}(2*i,2*j-1,:) + ...
-                pyramid_cell{l-1}(2*i-1,2*j,:) + pyramid_cell{l-1}(2*i,2*j,:);
-            end
-        end
-        num_bins = num_bins/2;
-    end
-
-    %% stack all the histograms with appropriate weights
-    pyramid = [];
-    for l = 1:pyramidLevels-1
-        pyramid = [pyramid pyramid_cell{l}(:)' .* 2^(-l)];
-    end
-    pyramid = [pyramid pyramid_cell{pyramidLevels}(:)' .* 2^(1-pyramidLevels)];
-
+     
     % save pyramid
     save(outFName, 'pyramid');
 
@@ -104,7 +72,8 @@ for f = 1:size(imageFileList,1)
 
 end % f
 
-outFName = fullfile(dataBaseDir, sprintf('pyramids_all_%d_%d.mat', dictionarySize, pyramidLevels));
+outFName = fullfile(dataBaseDir, sprintf('pyramids_all_%d_%d_%d_%d.mat', dictionarySize, pyramidLevels,...
+	params.max_pooling, params.sum_norm));
 save(outFName, 'pyramid_all');
 
 

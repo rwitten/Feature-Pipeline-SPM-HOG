@@ -29,7 +29,6 @@ fprintf('Building Histograms\n\n');
 
 inFName = fullfile(dataBaseDir, sprintf('dictionary_%d.mat', dictionarySize));
 
-fprintf('filename is %s\n', inFName)
 load(inFName,'dictionary');
 fprintf('Loaded texton dictionary: %d textons\n', dictionarySize);
 
@@ -46,7 +45,7 @@ for f = 1:size(imageFileList,1)
     outFName = fullfile(dataBaseDir, sprintf('%s_texton_ind_%d.mat', baseFName, dictionarySize));
     outFName2 = fullfile(dataBaseDir, sprintf('%s_hist_%d.mat', baseFName, dictionarySize));
     if(size(dir(outFName),1)~=0 && size(dir(outFName2),1)~=0 && params.can_skip && params.can_skip_buildhist)
-        fprintf('Skipping %s\n', imageFName);
+        fprintf('Skipping (build_histogram)%s\n', imageFName);
         load(outFName2, 'H');
         H_all = [H_all; H];
         continue;
@@ -55,7 +54,7 @@ for f = 1:size(imageFileList,1)
     %% load sift descriptors
     load(inFName, 'features');
     ndata = size(features.data,1);
-    fprintf('Loaded %s, %d descriptors\n', inFName, ndata);
+    fprintf('Loaded (build_histogram) %s, %d descriptors\n', inFName, ndata);
 
     %% find texton indices and compute histogram 
     texton_ind.data = zeros(ndata,1);

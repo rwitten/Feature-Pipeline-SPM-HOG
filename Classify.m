@@ -28,9 +28,15 @@ function [] = Classify()
 	    test_filenames(end + (1:num_test_files)) = newfilenames;
 	    test_labels = [test_labels; i*ones(num_test_files,1)];
 	end
-	
-	train_filenames = train_filenames';
-	test_filenames = test_filenames';
+
+	if params.baby_test,
+		train_filenames = train_filenames(1:10)';
+		test_filenames = test_filenames(1:10)';
+	else
+		train_filenames = train_filenames';
+		test_filenames = test_filenames';
+	end
+
 	in_pyramids = BuildPyramid(train_filenames, params,1);
 	test_pyramids = BuildPyramid(test_filenames, params,0);
 
@@ -53,29 +59,24 @@ function params = initParams()
     params.image_dir = 'images';
     params.data_dir = 'data';
 
-    params.useNaiveNN = 1;
-
-    params.cluster_kernel=0;
-    params.kernel_size = 1000;
-
+    params.baby_test = 0;
     params.class_names = classes;
     params.num_classes = length(params.class_names);
     params.max_image_size = 1000;
-    params.dictionary_size = 200;
+    params.dictionary_size = 1000;
     params.num_texton_images = 150;
-    params.pyramid_levels = 3;
+    params.pyramid_levels = 1;
+
     params.max_pooling = 1;
     params.sum_norm = 0;
-    params.do_llc = 0;
-    params.apply_kernel = 1;
+    
     params.can_skip = 1;
     params.can_skip_sift = 1;
     params.can_skip_calcdict = 1;
     params.can_skip_buildhist = 1;
     params.can_skip_compilepyramid = 1;
-    params.sumTol = 0;
+   
     params.percent_train = 0.7;
+    %obselete, but kept to keep consistency on filenames
     params.numNeighbors = 1;
-    params.usekdtree = 0;
-    params.numPassesSift=10;
 end
