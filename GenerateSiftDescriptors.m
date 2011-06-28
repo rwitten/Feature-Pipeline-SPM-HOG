@@ -1,4 +1,10 @@
-function [] = GenerateSiftDescriptors( imageFileList,imageBaseDir,dataBaseDir,maxImageSize,gridSpacing,patchSize,params)
+function [] = GenerateSiftDescriptors( imageFileList,params)
+
+imageBaseDir = params.image_dir;
+dataBaseDir = params.data_dir;
+maxImageSize = params.max_image_size;
+numTextonImages=params.num_texton_images;
+
 %function [] = GenerateSiftDescriptors( imageFileList, imageBaseDir, dataBaseDir, maxImageSize, gridSpacing, patchSize, canSkip )
 %function [] = GenerateSiftDescriptors( imageFileList, imageBaseDir, dataBaseDir, maxImageSize, gridSpacing, patchSize, canSkip )
 %

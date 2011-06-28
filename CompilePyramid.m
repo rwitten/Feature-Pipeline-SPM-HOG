@@ -58,18 +58,18 @@ for f = 1:size(imageFileList,1)
 
     if params.max_pooling
       pyramid = (pyramid > .1);
-    
+    end
+
     if params.sum_norm
       pyramid = pyramid / sum(sum(pyramid));
     else
       pyramid = pyramid/ norm(double(pyramid));
     end
-     
+
     % save pyramid
     save(outFName, 'pyramid');
 
     pyramid_all = [pyramid_all; pyramid];
-
 end % f
 
 outFName = fullfile(dataBaseDir, sprintf('pyramids_all_%d_%d_%d_%d.mat', dictionarySize, pyramidLevels,...

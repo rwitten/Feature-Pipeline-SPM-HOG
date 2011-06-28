@@ -28,7 +28,7 @@ fprintf('Building Dictionary\n\n');
 %% parameters
 
 reduce_flag = 1;
-ndata_max = 100000;
+ndata_max = 10000;
 
 if(numTextonImages > size(imageFileList,1))
     numTextonImages = size(imageFileList,1);
@@ -100,7 +100,7 @@ centers = zeros(dictionarySize, size(sift_all,2));
 %% run kmeans
 fprintf('\nRunning k-means\n');
 dictionary = sp_kmeans(centers, sift_all, options);
-    
+
 fprintf('Saving texton dictionary\n');
 sp_make_dir(outFName);
 save(outFName, 'dictionary');

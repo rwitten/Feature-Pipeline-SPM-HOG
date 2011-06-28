@@ -44,9 +44,6 @@ maxPooling = params.max_pooling;
 canSkip = params.can_skip;
 numNeighbors = params.numNeighbors;
 
-gridSpacing = 8
-patchSize = 16
-
 % %% parameters for feature extraction (see GenerateSiftDescriptors)
 % if(nargin<4)
 %     maxImageSize = 1000
@@ -77,7 +74,7 @@ patchSize = 16
 % end
 
 %% build the pyramid
-GenerateSiftDescriptors( imageFileList,imageBaseDir,dataBaseDir,maxImageSize,gridSpacing,patchSize,params);
+GenerateSiftDescriptors( imageFileList,params);
 if isTrain
     CalculateDictionary(imageFileList,dataBaseDir,'_sift.mat',dictionarySize,numTextonImages,params);
 end
