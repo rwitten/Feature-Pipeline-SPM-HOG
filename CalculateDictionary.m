@@ -28,44 +28,36 @@ fprintf('Building Dictionary\n\n');
 %% parameters
 
 reduce_flag = 1;
-ndata_max = 10000;
+ndata_max = params.ndata_max;
 
-if(numTextonImages > size(imageFileList,1))
-    numTextonImages = size(imageFileList,1);
-end
+numTextonImages = size(imageFileList,1);
 
-outFName = fullfile(dataBaseDir, sprintf('dictionary_%d.mat', dictionarySize));
+sprintf('dictionary_%d%s', dictionarySize, featureSuffix)
+outFName = fullfile(dataBaseDir, sprintf('dictionary_%d%s', dictionarySize, featureSuffix));
 
 if(size(dir(outFName),1)~=0 && params.can_skip && params.can_skip_calcdict)
     fprintf('Dictionary file %s already exists.\n', outFName);
     return;
 end
     
+training_indices = randperm(size(imageFileList,1));
+training_indices = training_indices(1:numTextonImages);
 
-%% load file list and determine indices of training images
+imageFName = imageFileList{training_indices(1)};
+[dirN base] = fileparts(imageFName);
+baseFName = fullfile(dirN, base);
+inFName = fullfile(dataBaseDir, sprintf('%s%s', baseFName, featureSuffix));
+load(inFName, 'features');
 
-inFName = fullfile(dataBaseDir, 'f_order.txt');
-if ~isempty(dir(inFName))
-    R = load(inFName, '-ascii');
-    if(size(R,1)~=size(imageFileList,1))
-        R = randperm(size(imageFileList,1));
-        sp_make_dir(inFName);
-        save(inFName, 'R', '-ascii');
-    end
-else
-    R = randperm(size(imageFileList,1));
-    sp_make_dir(inFName);
-    save(inFName, 'R', '-ascii');
-end
-
-training_indices = R(1:numTextonImages);
-
+feature_length = size(features.data,2);
 %% load all SIFT descriptors
-
-sift_all = [];
-
+sift_all = zeros(params.textons_per_image*numTextonImages, feature_length);
+tic;
 for f = 1:numTextonImages    
-    
+     if toc>1
+	fprintf('toc\n');
+	tic;
+     end
     imageFName = imageFileList{training_indices(f)};
     [dirN base] = fileparts(imageFName);
     baseFName = fullfile(dirN, base);
@@ -74,8 +66,12 @@ for f = 1:numTextonImages
     load(inFName, 'features');
     ndata = size(features.data,1);
 
-    sift_all = [sift_all; features.data];
-    fprintf('Loaded %s, %d descriptors, %d so far\n', inFName, ndata, size(sift_all,1));
+    perm = randperm(size(features.data,1));
+
+    numTextons = params.textons_per_image;
+
+    sift_all(1+(f-1)*numTextons:f*numTextons,:) = features.data(perm(1:numTextons),:);
+    fprintf('Loaded %s, %d descriptors, %d so far\n', inFName, ndata, numTextons*f);
 end
 
 fprintf('\nTotal descriptors loaded: %d\n', size(sift_all,1));

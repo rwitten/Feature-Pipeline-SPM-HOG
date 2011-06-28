@@ -27,7 +27,7 @@ fprintf('Building Histograms\n\n');
 
 %% load texton dictionary (all texton centers)
 
-inFName = fullfile(dataBaseDir, sprintf('dictionary_%d.mat', dictionarySize));
+inFName = fullfile(dataBaseDir, sprintf('dictionary_%d%s', dictionarySize, featureSuffix));
 
 load(inFName,'dictionary');
 fprintf('Loaded texton dictionary: %d textons\n', dictionarySize);
@@ -42,17 +42,18 @@ for f = 1:size(imageFileList,1)
     baseFName = fullfile(dirN, base);
     inFName = fullfile(dataBaseDir, sprintf('%s%s', baseFName, featureSuffix));
     
-    outFName = fullfile(dataBaseDir, sprintf('%s_texton_ind_%d.mat', baseFName, dictionarySize));
-    outFName2 = fullfile(dataBaseDir, sprintf('%s_hist_%d.mat', baseFName, dictionarySize));
+    outFName = fullfile(dataBaseDir, sprintf('%s_texton_ind_%d%s', baseFName,dictionarySize, featureSuffix));
+    outFName2 = fullfile(dataBaseDir, sprintf('%s_hist_%d%s', baseFName, dictionarySize,featureSuffix));
     if(size(dir(outFName),1)~=0 && size(dir(outFName2),1)~=0 && params.can_skip && params.can_skip_buildhist)
         fprintf('Skipping (build_histogram)%s\n', imageFName);
         load(outFName2, 'H');
         H_all = [H_all; H];
         continue;
     end
-    
+    dictionary = double(dictionary); 
     %% load sift descriptors
     load(inFName, 'features');
+    features.data = double(features.data);
     ndata = size(features.data,1);
     fprintf('Loaded (build_histogram) %s, %d descriptors\n', inFName, ndata);
 
@@ -60,10 +61,10 @@ for f = 1:size(imageFileList,1)
     texton_ind.data = zeros(ndata,1);
     texton_ind.x = features.x;
     texton_ind.y = features.y;
-    texton_ind.wid = features.wid;
-    texton_ind.hgt = features.hgt;
     %run in batches to keep the memory foot print small
     batchSize = 10000;
+    size(features.data)
+    size(dictionary)
     if ndata <= batchSize
         dist_mat = sp_dist2(features.data, dictionary);
         [min_dist, min_ind] = min(dist_mat, [], 2);
@@ -72,7 +73,7 @@ for f = 1:size(imageFileList,1)
         for j = 1:batchSize:ndata
             lo = j;
             hi = min(j+batchSize-1,ndata);
-            dist_mat = dist2(features.data(lo:hi,:), dictionary);
+            dist_mat = sp_dist2(features.data(lo:hi,:), dictionary);
             [min_dist, min_ind] = min(dist_mat, [], 2);
             texton_ind.data(lo:hi,:) = min_ind;
         end

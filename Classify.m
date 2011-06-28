@@ -1,4 +1,7 @@
 function [] = Classify()
+	addpath(genpath('vlfeat'));
+	vl_setup('noprefix');
+
 	%Initialize parameters of SPM classification
 	params = initParams();
 
@@ -30,18 +33,21 @@ function [] = Classify()
 	end
 
 	if params.baby_test,
-		RandStream.setDefaultStream(RandStream('mt19937ar','seed',1));
-		choices_train = randperm(length(train_filenames));
-		choices_test = randperm(length(test_filenames));
-		train_filenames = (train_filenames(choices_train(1:params.baby_test_num)))';
-		train_labels = train_labels(1:params.baby_test_num);
-		test_filenames = (test_filenames(choices_test(1:params.baby_test_num)))';
-		test_labels = test_labels(1:params.baby_test_num);
+		num_train_images=params.baby_test_num;
+		num_test_images = params.baby_test_num;
+		RandStream.setDefaultStream(RandStream('mt19937ar','seed',10));
 	else
-		train_filenames = train_filenames';
-		test_filenames = test_filenames';
+		num_train_images = length(train_filenames);
+	        num_test_images = length(test_filenames);
 	end
 
+        choices_train = randperm(length(train_filenames));
+        choices_test = randperm(length(test_filenames));
+        train_filenames = (train_filenames(choices_train(1:num_train_images)))';
+        train_labels = train_labels((choices_train(1:num_test_images))');
+
+        test_filenames = (test_filenames(choices_test(1:num_train_images)))';
+        test_labels = test_labels(choices_test(1:num_test_images)');
 	in_pyramids = BuildPyramid(train_filenames, params,1);
 	test_pyramids = BuildPyramid(test_filenames, params,0);
 
@@ -51,7 +57,7 @@ function [] = Classify()
 
 	%Train detector
 	model = train(train_labels,sparse(train_data));
-
+	fprintf('done training\n');
 	%Test detector
 	[guesses, accuracy] = predict(test_labels, sparse(test_data), model);
 end
@@ -62,6 +68,11 @@ function params = initParams()
     params.image_dir = 'images';
     params.data_dir = 'data';
 
+    params.patch_size = 16;
+    params.grid_spacing = 8;
+    
+    params.features ={ {'sift', @sift}, {'dsift', @dsift} };
+
     params.baby_test = 1;
     params.baby_test_num = 100;
 
@@ -69,7 +80,6 @@ function params = initParams()
     params.num_classes = length(params.class_names);
     params.max_image_size = 1000;
     params.dictionary_size = 1000;
-    params.num_texton_images = 15;%150
     params.pyramid_levels = 1;
 
     params.sift_grid_spacing = 8;
@@ -80,10 +90,14 @@ function params = initParams()
     
     params.can_skip = 1;
     params.can_skip_sift = 1;
-    params.can_skip_calcdict = 1;
+    params.can_skip_calcdict= 1;
     params.can_skip_buildhist =1;
-    params.can_skip_compilepyramid = 1;
-   
+    params.can_skip_compilepyramid =1;
+  
+    params.ndata_max = 1000;
+    params.textons_per_image = 1000;
+    params.num_texton_images = inf;
+ 
     params.percent_train = 0.7;
     %obselete, but kept to keep consistency on filenames
     params.numNeighbors = 1;
