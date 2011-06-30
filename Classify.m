@@ -33,20 +33,28 @@ function [] = Classify()
 	end
 
 	if params.baby_test,
-		num_train_images=params.baby_test_num;
-		num_test_images = params.baby_test_num;
-		RandStream.setDefaultStream(RandStream('mt19937ar','seed',10));
+		num_train_images=params.baby_test_num_train;
+		num_test_images = params.baby_test_num_test;
 	else
 		num_train_images = length(train_filenames);
 	        num_test_images = length(test_filenames);
 	end
 
+	RandStream.setDefaultStream(RandStream('mt19937ar','seed',10)); %choose the same files
         choices_train = randperm(length(train_filenames));
+	choices_train = choices_train(1:num_train_images);
         choices_test = randperm(length(test_filenames));
-        train_filenames = (train_filenames(choices_train(1:num_train_images)))';
-        train_labels = train_labels((choices_train(1:num_test_images))');
+	choices_test = choices_test(1:num_test_images);
 
-        test_filenames = (test_filenames(choices_test(1:num_train_images)))';
+	RandStream.setDefaultStream(RandStream('mt19937ar','seed',floor(sum(clock)))); %in a different order
+	choices_train=choices_train(randperm(length(choices_train)));
+        choices_test = choices_test(randperm(length(choices_test)));
+
+
+        train_filenames = (train_filenames(choices_train(1:num_train_images)))';
+        train_labels = train_labels((choices_train(1:num_train_images))');
+
+        test_filenames = (test_filenames(choices_test(1:num_test_images)))';
         test_labels = test_labels(choices_test(1:num_test_images)');
 	in_pyramids = BuildPyramid(train_filenames, params,1);
 	test_pyramids = BuildPyramid(test_filenames, params,0);
@@ -70,11 +78,14 @@ function params = initParams()
 
     params.patch_size = 16;
     params.grid_spacing = 8;
-    
-    params.features ={ {'sift', @sift}, {'dsift', @dsift} };
 
-    params.baby_test = 1;
-    params.baby_test_num = 100;
+    params.features ={ {'sift', @sift}, {'hog', @hog}, {'rgbSift', @rgbSift}, {'colorSift', @colorSift},{'opponentSift', @opponentSift} };
+    params.features = params.features(randperm(length(params.features)));
+    params.features ={{'sift', @sift}};
+
+    params.baby_test = 0;
+    params.baby_test_num_train = 1500;
+    params.baby_test_num_test = 1000;
 
     params.class_names = classes;
     params.num_classes = length(params.class_names);
@@ -82,11 +93,8 @@ function params = initParams()
     params.dictionary_size = 1000;
     params.pyramid_levels = 1;
 
-    params.sift_grid_spacing = 8;
-    params.sift_patch_size = 16;
-
     params.max_pooling = 1;
-    params.sum_norm = 0;
+    params.sum_norm = 1;
     
     params.can_skip = 1;
     params.can_skip_sift = 1;
@@ -94,10 +102,14 @@ function params = initParams()
     params.can_skip_buildhist =1;
     params.can_skip_compilepyramid =1;
   
-    params.ndata_max = 1000;
-    params.textons_per_image = 1000;
+    params.ndata_max = 50000;
+    params.textons_per_image = 50;
     params.num_texton_images = inf;
- 
+
+    params.hog_spacing = 4;
+    params.hog_size = 10;
+    params.sift_grid_spacing = 8;
+    params.sift_patch_size = 16;
     params.percent_train = 0.7;
     %obselete, but kept to keep consistency on filenames
     params.numNeighbors = 1;

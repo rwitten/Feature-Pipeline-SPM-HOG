@@ -44,11 +44,13 @@ for f = 1:size(imageFileList,1)
     
     outFName = fullfile(dataBaseDir, sprintf('%s_texton_ind_%d%s', baseFName,dictionarySize, featureSuffix));
     outFName2 = fullfile(dataBaseDir, sprintf('%s_hist_%d%s', baseFName, dictionarySize,featureSuffix));
-    if(size(dir(outFName),1)~=0 && size(dir(outFName2),1)~=0 && params.can_skip && params.can_skip_buildhist)
+    outFName3 = fullfile(dataBaseDir, sprintf('%s_spquantized_%d%s', baseFName,dictionarySize, featureSuffix));
+    if(size(dir(outFName),1)~=0 && size(dir(outFName2),1)~=0&& size(dir(outFName3),1)~= 0&&params.can_skip && params.can_skip_buildhist)
         fprintf('Skipping (build_histogram)%s\n', imageFName);
         load(outFName2, 'H');
         H_all = [H_all; H];
-        continue;
+
+	continue;
     end
     dictionary = double(dictionary); 
     %% load sift descriptors
@@ -61,10 +63,10 @@ for f = 1:size(imageFileList,1)
     texton_ind.data = zeros(ndata,1);
     texton_ind.x = features.x;
     texton_ind.y = features.y;
+    texton_ind.hgt = features.hgt;
+    texton_ind.wid = features.wid;
     %run in batches to keep the memory foot print small
     batchSize = 10000;
-    size(features.data)
-    size(dictionary)
     if ndata <= batchSize
         dist_mat = sp_dist2(features.data, dictionary);
         [min_dist, min_ind] = min(dist_mat, [], 2);
@@ -79,6 +81,14 @@ for f = 1:size(imageFileList,1)
         end
     end
 
+    f = fopen(outFName3, 'w');
+	fprintf(f,'%d\n', length(texton_ind.x));
+    fprintf(f,'(%d,%d)\n', texton_ind.hgt, texton_ind.wid);
+    for i = 1:length(texton_ind.x), 
+       fprintf(f,'(%d,%d):%d\n', ceil(texton_ind.y(i)), ceil(texton_ind.x(i)), texton_ind.data(i,:));
+    end
+    fclose(f);
+	    
     H = hist(texton_ind.data, 1:dictionarySize);
     H_all = [H_all; H];
 

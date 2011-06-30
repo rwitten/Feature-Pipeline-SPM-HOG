@@ -1,4 +1,4 @@
-function [ pyramid_all ] = CompilePyramid(imageFileList,dataBaseDir,textonSuffix, dictionarySize,pyramidLevels, params);
+function [ pyramid_all ] = CompilePyramid(imageFileList,dataBaseDir,textonSuffix, dictionarySize,pyramidLevels,name, params);
 %function [ pyramid_all ] = CompilePyramid( imageFileList, dataBaseDir, textonSuffix, dictionarySize, pyramidLevels, canSkip )
 %
 % Generate the pyramid from the texton lablels
@@ -27,15 +27,13 @@ fprintf('Compiling Pyramid\n');
 pyramid_all = [];
 
 for f = 1:size(imageFileList,1)
-
-
     %% load image
     imageFName = imageFileList{f};
     [dirN base] = fileparts(imageFName);
     baseFName = fullfile(dirN, base);
     
-    outFName = fullfile(dataBaseDir, sprintf('%s_pyramid_%d_%d_%d_%d.mat', baseFName, dictionarySize, pyramidLevels, ...
-	params.max_pooling, params.sum_norm));
+    outFName = fullfile(dataBaseDir, sprintf('%s_pyramid_%d_%d_%d_%d_%s.mat', baseFName, dictionarySize, pyramidLevels, ...
+	params.max_pooling, params.sum_norm, name));
     if(size(dir(outFName),1)~=0 && params.can_skip && params.can_skip_compilepyramid)
         fprintf('Skipping (compile pyramid) %s\n', imageFName);
         load(outFName, 'pyramid');

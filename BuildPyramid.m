@@ -75,11 +75,15 @@ numNeighbors = params.numNeighbors;
 
 %% build the pyramid
 
+pyramid_all = []
+
 for i=1:size(params.features,2),
 	GenerateDescriptors( params.features{i}{1}, params.features{i}{2}, imageFileList,params);
 	if isTrain
 		CalculateDictionary(imageFileList,dataBaseDir,sprintf('_%s.mat',params.features{i}{1}),dictionarySize,numTextonImages,params);
 	end
 	BuildHistograms(imageFileList,dataBaseDir,sprintf('_%s.mat',params.features{i}{1}),dictionarySize,params);
-	pyramid_all = CompilePyramid(imageFileList,dataBaseDir,sprintf('_texton_ind_%d_%s.mat',dictionarySize,params.features{i}{1}),dictionarySize,pyramidLevels, params);
+	pyramid = CompilePyramid(imageFileList,dataBaseDir,sprintf('_texton_ind_%d_%s.mat',dictionarySize,params.features{i}{1}),dictionarySize,pyramidLevels,params.features{i}{1}, params);
+	pyramid_all = [pyramid_all, pyramid];
 end
+size(pyramid_all)

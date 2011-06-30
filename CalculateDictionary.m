@@ -49,6 +49,8 @@ baseFName = fullfile(dirN, base);
 inFName = fullfile(dataBaseDir, sprintf('%s%s', baseFName, featureSuffix));
 load(inFName, 'features');
 
+inFName
+features
 feature_length = size(features.data,2);
 %% load all SIFT descriptors
 sift_all = zeros(params.textons_per_image*numTextonImages, feature_length);
@@ -87,9 +89,9 @@ end
 options = foptions;
 options(1) = 1; % display
 options(2) = 1;
-options(3) = 0.1; % precision
+options(3) = 1; % precision
 options(5) = 1; % initialization
-options(14) = 100; % maximum iterations
+options(14) = 50; % maximum iterations
 
 centers = zeros(dictionarySize, size(sift_all,2));
 
